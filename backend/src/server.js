@@ -9,6 +9,8 @@ import pinoHTTP from 'pino-http';
 import logger from './utils/logger.js';
 import errorHandler from "./middlewares/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
+import notesRoutes from "./routes/note.routes.js";
+
 
 const app = express();
 
@@ -30,6 +32,8 @@ app.use(pinoHTTP({ logger }));
 
 // Routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/notes", notesRoutes);
+
 
 // Global error handler middleware
 app.use(errorHandler);

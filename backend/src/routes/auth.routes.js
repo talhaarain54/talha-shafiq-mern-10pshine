@@ -1,7 +1,7 @@
 import e from "express";
 import validate from "../middlewares/validate.middleware.js";
-import { signInSchema, signUpSchema } from "../validations/auth.validation.js";
-import { getMe, googleSuccess, refreshAccessToken, signIn, signUp } from "../controllers/auth.controllers.js";
+import { signInSchema, signUpSchema, updateProfileSchema, changePasswordSchema } from "../validations/auth.validation.js";
+import { getMe, googleSuccess, refreshAccessToken, signIn, signUp, logout, changePassword, updateProfile } from "../controllers/auth.controllers.js";
 import passport from "passport";
 import { protect } from "../middlewares/auth.middleware.js";
 
