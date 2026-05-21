@@ -1,12 +1,15 @@
-import { Navigate, Outlet } from 'react-router';
-import { useSelector } from 'react-redux';
+import { Navigate, Outlet } from "react-router";
+import { useSelector } from "react-redux";
 
 export default function ProtectedRoute() {
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const { isAuthenticated, loading } = useSelector((state) => state.auth);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  if (loading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        Loading
+      </div>
+    );
 
-  return <Outlet />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 }

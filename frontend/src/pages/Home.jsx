@@ -2,7 +2,6 @@ import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import { Feather, LayoutGrid, Zap } from "lucide-react";
 import LogoFile from "../assets/logo.svg";
-import Navbar from "../components/Navbar";
 
 export default function Home() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -27,8 +26,6 @@ export default function Home() {
 
   return (
     <>
-      <Navbar />
-
       {/* HERO SECTION */}
       <div className="min-h-screen mt-8 bg-white flex flex-col items-center justify-center p-6 font-sans relative">
         <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] bg-size-[20px_20px]"></div>
