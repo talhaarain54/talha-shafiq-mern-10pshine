@@ -1,7 +1,7 @@
 import User from "../models/User.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import logger from "../utils/logger.js";
-import { generateAccessToken, sendTokenResponse } from "../utils/tokens.js";
+import { generateAccessToken, generateRefreshToken, sendTokenResponse } from "../utils/tokens.js";
 import jwt from "jsonwebtoken";
 
 const signUp = asyncHandler(async (req, res, next) => {
