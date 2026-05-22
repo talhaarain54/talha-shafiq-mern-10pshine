@@ -15,6 +15,7 @@ import { useDispatch } from "react-redux";
 import { getMeService } from "./services/auth.service";
 import GoogleCallback from "./pages/GoogleCallback";
 import MainLayout from "./components/MainLayout";
+import Trash from "./pages/Trash";
 
 
 const App = () => {
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/notes/:id" element={<NoteEditor />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/trash" element={<Trash />} />
           </Route>
 
           {/* Fallback Route 404 Page not Found */}
