@@ -8,6 +8,7 @@ import {
     restoreNote,
     deleteNotePermanently,
     getNoteById,
+    getUserTags,
 } from "../controllers/note.controllers.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import validate from "../middlewares/validate.middleware.js";
@@ -24,6 +25,7 @@ router
     .route("/")
     .get(getNotes)
     .post(validate(createNoteSchema), createNote);
+router.get("/tags", getUserTags);
 
 router.get("/trash", getTrashedNotes);
 router.put("/restore/:id", restoreNote);

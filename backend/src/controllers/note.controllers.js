@@ -2,25 +2,24 @@ import Note from "../models/Note.model.js";
 import logger from "../utils/logger.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
-const getNotes = asyncHandler(async (req, res, next) => {
-    const { search } = req.query;
+const getNotes = asyncHandler(async (req, res) => {
+    const { search, tag, sort = "updatedAt" } = req.query;
 
-    let query = {
-        user: req.user._id,
-        is_deleted: false,
+    let query = { user: req.user._id, is_deleted: false };
+
+    if (search) query.$text = { $search: search };
+    if (tag) query.tags = tag;
+
+    const sortOptions = {
+        updatedAt: { updatedAt: -1 },
+        createdAt: { createdAt: -1 },
+        title: { title: 1 },
+        "title-desc": { title: -1 },
     };
 
-    if (search) {
-        query.$text = { $search: search };
-    }
+    const notes = await Note.find(query).sort(sortOptions[sort] || { updatedAt: -1 });
 
-    const notes = await Note.find(query).sort({ updatedAt: -1 });
-
-    res.status(200).json({
-        success: true,
-        count: notes.length,
-        data: notes,
-    });
+    res.status(200).json({ success: true, count: notes.length, data: notes });
 });
 
 const getTrashedNotes = asyncHandler(async (req, res, next) => {
@@ -138,11 +137,23 @@ const deleteNotePermanently = asyncHandler(async (req, res, next) => {
     res.status(200).json({ success: true, message: "Note permanently deleted" });
 });
 
+const getUserTags = asyncHandler(async (req, res) => {
+    const tags = await Note.aggregate([
+        { $match: { user: req.user._id, is_deleted: false } },
+        { $unwind: "$tags" },
+        { $group: { _id: "$tags", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $project: { _id: 0, tag: "$_id", count: 1 } },
+    ]);
+    res.status(200).json({ success: true, data: tags });
+});
+
 export {
     createNote,
     updateNote,
     getNoteById,
     getNotes,
+    getUserTags,
     getTrashedNotes,
     trashNote,
     restoreNote,

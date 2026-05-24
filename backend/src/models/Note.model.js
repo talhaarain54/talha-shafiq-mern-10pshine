@@ -16,6 +16,10 @@ const noteSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
+		tags: {
+      		type: [String],
+      		default: [],
+    	},
 		is_deleted: {
 			type: Boolean,
 			default: false,
@@ -38,6 +42,7 @@ noteSchema.index(
 );
 
 noteSchema.index({ title: "text", content: "text" });
+noteSchema.index({ user: 1, tags: 1, is_deleted: 1 });
 
 const Note = mongoose.model("Note", noteSchema);
 
