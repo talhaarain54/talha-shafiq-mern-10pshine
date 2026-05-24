@@ -16,6 +16,9 @@ import { getMeService } from "./services/auth.service";
 import GoogleCallback from "./pages/GoogleCallback";
 import MainLayout from "./components/MainLayout";
 import Trash from "./pages/Trash";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 
 const App = () => {
@@ -49,7 +52,12 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login-success" element={<GoogleCallback />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
+
+          {/* Open — no auth required */}
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Dark mode styles for Quill editor */
+.dark .ql-toolbar {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+.dark .ql-toolbar .ql-stroke { stroke: #94a3b8 !important; }
+.dark .ql-toolbar .ql-fill { fill: #94a3b8 !important; }
+.dark .ql-toolbar button:hover .ql-stroke { stroke: #60a5fa !important; }
+.dark .ql-toolbar .ql-picker-label { color: #94a3b8 !important; }
+.dark .ql-container {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+.dark .ql-editor { color: #e2e8f0 !important; }
+.dark .ql-editor.ql-blank::before { color: #475569 !important; }
