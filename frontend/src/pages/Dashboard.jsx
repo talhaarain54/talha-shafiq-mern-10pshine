@@ -7,10 +7,13 @@ import { setNotes, removeNote, setNoteLoading } from "../features/noteSlice";
 import { handleApiError } from "../utils/handleApiError";
 import toast from "react-hot-toast";
 import NoteCard from "../components/NoteCard";
+import ConfirmModal from "../components/ConfirmModal";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [showTrashModal, setShowTrashModal] = useState(false);
+  const [selectedNoteId, setSelectedNoteId] = useState(null);
 
   const { user } = useSelector((state) => state.auth);
   const { notes, loading } = useSelector((state) => state.notes);
@@ -20,7 +23,7 @@ const Dashboard = () => {
     dispatch(setNoteLoading(true));
     try {
       const res = await getNotesService(searchQuery);
-      dispatch(setNotes(res.data)); 
+      dispatch(setNotes(res.data));
     } catch (err) {
       handleApiError(err);
     } finally {
@@ -32,22 +35,24 @@ const Dashboard = () => {
     fetchActiveNotes();
   }, []);
 
-
-useEffect(() => {
-  const delay = setTimeout(() => {
-    fetchActiveNotes(); 
-  }, 500);
-  return () => clearTimeout(delay);
-}, [searchQuery]);
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      fetchActiveNotes();
+    }, 500);
+    return () => clearTimeout(delay);
+  }, [searchQuery]);
 
   // 2. Trash Logic (Soft Delete)
-  const handleTrash = async (id) => {
-    if (!window.confirm("Move this note to trash?")) return;
-
+  const handleTrash = async () => {
     try {
-      await trashNoteService(id);
-      dispatch(removeNote(id));
+      await trashNoteService(selectedNoteId);
+
+      dispatch(removeNote(selectedNoteId));
+
       toast.success("Note moved to trash");
+
+      setShowTrashModal(false);
+      setSelectedNoteId(null);
     } catch (err) {
       handleApiError(err);
     }
@@ -98,7 +103,10 @@ useEffect(() => {
                 note={note}
                 onNavigate={(id) => navigate(`/notes/${id}`)}
                 onAction={(type, id) => {
-                  if (type === "trash") handleTrash(id);
+                  if (type === "trash") {
+                    setSelectedNoteId(id);
+                    setShowTrashModal(true);
+                  }
                 }}
               />
             ))}
@@ -132,6 +140,19 @@ useEffect(() => {
           className="group-hover:rotate-90 transition-transform duration-300"
         />
       </button>
+
+      <ConfirmModal
+        isOpen={showTrashModal}
+        title="Move Note to Trash?"
+        message="This note will be moved to trash. You can restore it later."
+        confirmText="Move to Trash"
+        confirmColor="red"
+        onConfirm={handleTrash}
+        onCancel={() => {
+          setShowTrashModal(false);
+          setSelectedNoteId(null);
+        }}
+      />
     </div>
   );
 };
