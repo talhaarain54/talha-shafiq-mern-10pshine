@@ -43,9 +43,31 @@ const changePasswordSchema = z.object({
   })
 });
 
+const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().email("Invalid email format"),
+  }),
+});
+
+const resetPasswordSchema = z.object({
+  body: z.object({
+    token: z.string().min(1, "Reset token is required"),
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+        "Password too weak"
+      ),
+  }),
+});
+
+
 export {
     signUpSchema,
     signInSchema,
     changePasswordSchema,
     updateProfileSchema,
+    resetPasswordSchema,
+    forgotPasswordSchema,
 }
