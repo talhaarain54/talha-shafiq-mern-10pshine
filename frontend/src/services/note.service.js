@@ -1,9 +1,18 @@
 import API from "../api/axios";
 
 
-export const getNotesService = async (searchTerm = "") => {
-  const url = searchTerm ? `/v1/notes?search=${searchTerm}` : "/v1/notes";
+export const getNotesService = async (searchTerm = "", tag = "", sort = "updatedAt") => {
+  const params = new URLSearchParams();
+  if (searchTerm) params.append("search", searchTerm);
+  if (tag) params.append("tag", tag);
+  if (sort) params.append("sort", sort);
+  const url = `/v1/notes${params.toString() ? `?${params.toString()}` : ""}`;
   const { data } = await API.get(url);
+  return data;
+};
+
+export const getUserTagsService = async () => {
+  const { data } = await API.get("/v1/notes/tags");
   return data;
 };
 

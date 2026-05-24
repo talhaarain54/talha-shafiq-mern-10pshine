@@ -7,7 +7,22 @@ const getNotes = asyncHandler(async (req, res) => {
 
     let query = { user: req.user._id, is_deleted: false };
 
-    if (search) query.$text = { $search: search };
+    if (search) {
+        query.$or = [
+            {
+                title: {
+                    $regex: search,
+                    $options: "i",
+                },
+            },
+            {
+                content: {
+                    $regex: search,
+                    $options: "i",
+                },
+            },
+        ];
+}
     if (tag) query.tags = tag;
 
     const sortOptions = {
