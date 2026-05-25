@@ -15,7 +15,9 @@ import notesRoutes from "./routes/note.routes.js";
 
 const app = express();
 
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // middlewares
 app.use(cors({ 
@@ -28,8 +30,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(passport.initialize());
-app.use(pinoHTTP({ logger }));
-
+if (process.env.NODE_ENV !== 'test') {
+  app.use(pinoHTTP({ logger }));
+}
 
 // Rate Limiters
 const generalLimiter = rateLimit({
@@ -55,10 +58,10 @@ const forgotPasswordLimiter = rateLimit({
   message: { success: false, message: "Too many password reset requests. Please try again in an hour." },
 });
 
-app.use("/api", generalLimiter);
-app.use("/api/v1/auth/signin", authLimiter);
-app.use("/api/v1/auth/signup", authLimiter);
-app.use("/api/v1/auth/forgot-password", forgotPasswordLimiter);
+// app.use("/api", generalLimiter);
+// app.use("/api/v1/auth/signin", authLimiter);
+// app.use("/api/v1/auth/signup", authLimiter);
+// app.use("/api/v1/auth/forgot-password", forgotPasswordLimiter);
 
 
 // Routes
@@ -76,6 +79,10 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
