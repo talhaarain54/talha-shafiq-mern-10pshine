@@ -89,7 +89,7 @@ const updateNote = asyncHandler(async (req, res, next) => {
             is_deleted: false,
         },
         req.body,
-        { new: true, runValidators: true },
+        { returnDocument: 'after', runValidators: true },
     );
 
     if (!note) {
@@ -108,7 +108,7 @@ const trashNote = asyncHandler(async (req, res, next) => {
             is_deleted: false,
         },
         { is_deleted: true, deletedAt: new Date() },
-        { new: true },
+        { returnDocument: 'after' },
     );
 
     if (!note) {
@@ -127,7 +127,7 @@ const restoreNote = asyncHandler(async (req, res, next) => {
             is_deleted: true,
         },
         { is_deleted: false, deletedAt: null },
-        { new: true },
+        { returnDocument: 'after' },
     );
 
     if (!note) {

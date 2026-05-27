@@ -1,12 +1,12 @@
 import pino from "pino";
 
 const isProduction = process.env.NODE_ENV === "production";
-
+const isTest = process.env.NODE_ENV === 'test';
 const transport = pino.transport({
   targets: [
     {
       target: "pino-pretty",
-      level: isProduction ? "info" : "debug",
+      level: isProduction ? "info" : isTest? "silent" : "debug",
       options: {
         colorize: true,
         translateTime: "SYS:standard",

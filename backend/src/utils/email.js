@@ -15,6 +15,7 @@ const createTransporter = () => {
 };
 
 export const sendVerificationEmail = async (user, verificationToken) => {
+  if (process.env.NODE_ENV === 'test') return;
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
@@ -61,6 +62,7 @@ export const sendVerificationEmail = async (user, verificationToken) => {
 };
 
 export const sendPasswordResetEmail = async (user, resetToken) => {
+  if (process.env.NODE_ENV === 'test') return;
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   const mailOptions = {
