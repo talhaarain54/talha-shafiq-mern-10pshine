@@ -3,6 +3,9 @@ import asyncHandler from "../utils/asyncHandler.js";
 import logger from "../utils/logger.js";
 import { generateAccessToken, generateRefreshToken, sendTokenResponse } from "../utils/tokens.js";
 import jwt from "jsonwebtoken";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../utils/email.js";
+import crypto from "crypto";
+
 
 const signUp = asyncHandler(async (req, res, next) => {
     const { name, email, password } = req.body;
@@ -22,24 +25,146 @@ const signUp = asyncHandler(async (req, res, next) => {
     }
 
     const user = await User.create({ name, email, password });
-    logger.info(`New user registered: ${email}`);
-    await sendTokenResponse(user, 201, res);
-})
-
-
-const signIn = asyncHandler(async (req, res, next) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select("+password");
-
-    if (!user || !user.password || !(await user.comparePassword(password))) {
-        logger.warn(`Failed login attempt for: ${email}`);
-        return res.status(401).json({
-            success: false,
-            message: "Invalid credentials"
-        });
+    logger.info(`New user registered, but email is not verified yet: ${email}`);
+    const verificationToken = user.generateVerificationToken();
+    await user.save({ validateBeforeSave: false });
+    
+    try {
+      await sendVerificationEmail(user, verificationToken);
+    } catch (emailErr) {
+      logger.error(`Verification email failed: ${emailErr.message}`);
     }
 
-    await sendTokenResponse(user, 200, res);
+    return res.status(201).json({
+      success: true,
+      message: "Account created! Please check your email to verify your account.",
+      data: { user: { _id: user._id, name: user.name, email: user.email, isVerified: false } },
+    });
+});
+
+
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.query;
+  if (!token) {
+    return res.status(400).json({ success: false, message: "Verification token is missing" });
+  }
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    verificationToken: hashedToken,
+    verificationTokenExpiry: { $gt: Date.now() },
+  }).select("+verificationToken +verificationTokenExpiry");
+
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: "Verification link is invalid or has expired. Please request a new one.",
+    });
+  }
+
+  user.isVerified = true;
+  user.verificationToken = undefined;
+  user.verificationTokenExpiry = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  logger.info(`Email verified for: ${user.email}`);
+  return res.status(200).json({ success: true, message: "Email verified successfully! You can now log in." });
+});
+
+const resendVerification = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email }).select("+verificationToken +verificationTokenExpiry");
+
+  if (!user || user.isVerified) {
+    return res.status(200).json({
+      success: true,
+      message: "If that email exists and is unverified, a new link has been sent.",
+    });
+  }
+
+  const verificationToken = user.generateVerificationToken();
+  await user.save({ validateBeforeSave: false });
+  await sendVerificationEmail(user, verificationToken);
+
+  return res.status(200).json({ success: true, message: "Verification email resent." });
+});
+
+
+const signIn = asyncHandler(async (req, res) => {
+  const { email, password, rememberMe = false } = req.body;
+  const user = await User.findOne({ email }).select("+password");
+
+  if (!user || !user.password || !(await user.comparePassword(password))) {
+    logger.warn(`Failed login: ${email}`);
+    return res.status(401).json({ success: false, message: "Invalid credentials" });
+  }
+
+  if (!user.isVerified) {
+    return res.status(403).json({
+      success: false,
+      message: "Please verify your email before logging in.",
+      needsVerification: true,
+    });
+  }
+
+  logger.info(`User logged in: ${email}`);
+  await sendTokenResponse(user, 200, res, rememberMe);
+});
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email }).select("+passwordResetToken +passwordResetExpiry");
+
+  if (!user) {
+    return res.status(200).json({
+      success: true,
+      message: "If that email exists, a password reset link has been sent.",
+    });
+  }
+
+  const resetToken = user.generatePasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  try {
+    await sendPasswordResetEmail(user, resetToken);
+    logger.info(`Password reset email sent to: ${email}`);
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpiry = undefined;
+    await user.save({ validateBeforeSave: false });
+    return res.status(500).json({ success: false, message: "Could not send reset email. Please try again." });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "If that email exists, a password reset link has been sent.",
+  });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body;
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpiry: { $gt: Date.now() },
+  }).select("+passwordResetToken +passwordResetExpiry");
+
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: "Reset link is invalid or has expired. Please request a new one.",
+    });
+  }
+
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpiry = undefined;
+  user.refreshToken = null;
+  await user.save();
+
+  logger.info(`Password reset successful for: ${user.email}`);
+  return res.status(200).json({ success: true, message: "Password reset successfully. You can now log in." });
 });
 
 
@@ -222,4 +347,8 @@ export {
     logout,
     updateProfile,
     changePassword,
+    verifyEmail,
+    resendVerification,
+    forgotPassword,
+    resetPassword,
 };

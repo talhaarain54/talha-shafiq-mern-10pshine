@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcryptjs from "bcryptjs";
+import crypto from "crypto";
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -34,6 +35,26 @@ const userSchema = new mongoose.Schema({
         type: String,
         select: false,
     },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
+    verificationToken: {
+        type: String,
+        select: false,
+    },
+    verificationTokenExpiry: {
+        type: Date,
+        select: false,
+    },
+    passwordResetToken: {
+        type: String,
+        select: false,
+    },
+    passwordResetExpiry: {
+        type: Date,
+        select: false,
+    },
 }, { timestamps: true });
 
 
@@ -64,6 +85,20 @@ userSchema.pre("updateOne", hashUpdatePassword);
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
     return await bcryptjs.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.generateVerificationToken = function () {
+    const token = crypto.randomBytes(32).toString("hex");
+    this.verificationToken = crypto.createHash("sha256").update(token).digest("hex");
+    this.verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    return token;
+};
+
+userSchema.methods.generatePasswordResetToken = function () {
+    const token = crypto.randomBytes(32).toString("hex");
+    this.passwordResetToken = crypto.createHash("sha256").update(token).digest("hex");
+    this.passwordResetExpiry = new Date(Date.now() + 60 * 60 * 1000);
+    return token;
 };
 
 
