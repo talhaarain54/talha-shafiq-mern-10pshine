@@ -19,6 +19,7 @@ import Trash from "./pages/Trash";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import EmailNotVerified from "./pages/Emailnotverified";
 
 
 const App = () => {
@@ -58,6 +59,7 @@ const App = () => {
 
           {/* Open — no auth required */}
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/email-not-verified" element={<EmailNotVerified />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

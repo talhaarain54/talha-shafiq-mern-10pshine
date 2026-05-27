@@ -14,7 +14,6 @@ const Login = () => {
   const { loading } = useSelector((state) => state.auth);
   const isDark = useSelector((s) => s.theme.mode === "dark");
   const [showPassword, setShowPassword] = useState(false);
-  const [needsVerification, setNeedsVerification] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
@@ -27,7 +26,6 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     dispatch(setLoading(true));
-    setNeedsVerification(false);
     try {
       const res = await loginService(data);
       dispatch(login({ user: res.data.user, accessToken: res.accessToken }));
@@ -35,7 +33,8 @@ const Login = () => {
       navigate("/dashboard");
     } catch (err) {
       if (err.response?.data?.needsVerification) {
-        setNeedsVerification(true);
+        // Navigate to the dedicated "email not verified" page, passing the email
+        navigate("/email-not-verified", { state: { email: data.email } });
       } else {
         handleApiError(err);
       }
@@ -48,10 +47,16 @@ const Login = () => {
     window.location.href = `${import.meta.env.VITE_API_URL}/v1/auth/google`;
   };
 
-  const pg = isDark ? "min-h-screen flex items-center justify-center bg-slate-900 px-4" : "min-h-screen flex items-center justify-center bg-gray-100 px-4";
+  const pg = isDark
+    ? "min-h-screen flex items-center justify-center bg-slate-900 px-4"
+    : "min-h-screen flex items-center justify-center bg-gray-100 px-4";
   const card = isDark ? "bg-slate-800 border border-slate-700" : "bg-white shadow-md";
-  const h = isDark ? "text-2xl font-bold text-center text-white mb-8" : "text-2xl font-bold text-center text-gray-800 mb-8";
-  const label = isDark ? "block text-sm font-medium text-slate-300" : "block text-sm font-medium text-gray-700";
+  const h = isDark
+    ? "text-2xl font-bold text-center text-white mb-8"
+    : "text-2xl font-bold text-center text-gray-800 mb-8";
+  const label = isDark
+    ? "block text-sm font-medium text-slate-300"
+    : "block text-sm font-medium text-gray-700";
   const input = isDark
     ? "w-full p-2 border border-slate-600 rounded mt-1 bg-slate-700 text-white placeholder:text-slate-400 outline-none focus:ring-blue-500"
     : "w-full p-2 border border-gray-300 rounded mt-1 focus:ring-blue-500 outline-none";
@@ -77,22 +82,15 @@ const Login = () => {
           <div className={`flex-1 h-px ${dividerLine}`} />
         </div>
 
-        {needsVerification && (
-          <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-amber-700 text-sm font-medium">
-              📧 Your email is not verified. Please check your inbox.
-            </p>
-            <Link to="/signup" className="text-blue-600 text-sm font-bold underline mt-1 inline-block">
-              Resend verification email →
-            </Link>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className={label}>Email</label>
-            <input type="email" {...register("email", { required: "Email is required" })}
-              className={input} placeholder="you@example.com" />
+            <input
+              type="email"
+              {...register("email", { required: "Email is required" })}
+              className={input}
+              placeholder="you@example.com"
+            />
             {errors.email && <span className="text-red-500 text-xs">{errors.email.message}</span>}
           </div>
 
@@ -104,34 +102,57 @@ const Login = () => {
               </Link>
             </div>
             <div className="relative mt-1">
-              <input type={showPassword ? "text" : "password"}
+              <input
+                type={showPassword ? "text" : "password"}
                 {...register("password", { required: "Password is required" })}
-                className={`${input} pr-10`} placeholder="••••••••" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? "text-slate-400 hover:text-slate-200" : "text-gray-400 hover:text-gray-600"} flex items-center`}>
+                className={`${input} pr-10`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                  isDark ? "text-slate-400 hover:text-slate-200" : "text-gray-400 hover:text-gray-600"
+                } flex items-center`}
+              >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {errors.password && <span className="text-red-500 text-xs mt-1 block">{errors.password.message}</span>}
+            {errors.password && (
+              <span className="text-red-500 text-xs mt-1 block">{errors.password.message}</span>
+            )}
           </div>
 
           {/* Remember Me */}
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="rememberMe" {...register("rememberMe")} className="w-4 h-4 accent-blue-600 cursor-pointer" />
-            <label htmlFor="rememberMe" className={`text-sm cursor-pointer ${isDark ? "text-slate-300" : "text-gray-600"}`}>
+            <input
+              type="checkbox"
+              id="rememberMe"
+              {...register("rememberMe")}
+              className="w-4 h-4 accent-blue-600 cursor-pointer"
+            />
+            <label
+              htmlFor="rememberMe"
+              className={`text-sm cursor-pointer ${isDark ? "text-slate-300" : "text-gray-600"}`}
+            >
               Remember me for 30 days
             </label>
           </div>
 
-          <button disabled={loading} type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-blue-400 transition font-semibold">
+          <button
+            disabled={loading}
+            type="submit"
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-blue-400 transition font-semibold"
+          >
             {loading ? "Authenticating..." : "Login"}
           </button>
         </form>
 
         <p className={`mt-6 text-center text-sm ${isDark ? "text-slate-400" : "text-gray-600"}`}>
           New user?{" "}
-          <Link to="/signup" className="text-blue-600 font-semibold hover:underline">Sign up here</Link>
+          <Link to="/signup" className="text-blue-600 font-semibold hover:underline">
+            Sign up here
+          </Link>
         </p>
       </div>
     </div>
