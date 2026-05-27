@@ -20,13 +20,17 @@ import ConfirmModal from "../components/ConfirmModal";
 
 const Trash = () => {
   const dispatch = useDispatch();
+
   const { trashedNotes, loading } = useSelector((state) => state.notes);
+  const isDark = useSelector((state) => state.theme.mode === "dark");
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState(null);
 
   useEffect(() => {
     const fetchTrash = async () => {
       dispatch(setNoteLoading(true));
+
       try {
         const res = await getTrashedNotesService();
         dispatch(setTrashedNotes(res.data));
@@ -36,6 +40,7 @@ const Trash = () => {
         dispatch(setNoteLoading(false));
       }
     };
+
     fetchTrash();
   }, [dispatch]);
 
@@ -43,14 +48,18 @@ const Trash = () => {
     try {
       if (type === "restore") {
         const res = await restoreNoteService(id);
+
         dispatch(restoreNoteState(res.data));
+
         toast.success("Note restored to dashboard");
       } else {
         await deletePermanentService(selectedNoteId);
+
         dispatch(deletePermanentState(selectedNoteId));
 
         setShowDeleteModal(false);
         setSelectedNoteId(null);
+
         toast.success("Note deleted permanently");
       }
     } catch (err) {
@@ -59,20 +68,43 @@ const Trash = () => {
   };
 
   if (loading) {
-    return <p className="text-center py-20">Loading trash...</p>;
+    return (
+      <p
+        className={`text-center py-20 ${
+          isDark ? "text-slate-300" : "text-slate-600"
+        }`}
+      >
+        Loading trash...
+      </p>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-20 pt-10">
+    <div
+      className={`min-h-screen pb-20 pt-10 transition-colors duration-300 ${
+        isDark ? "bg-slate-900" : "bg-gray-50/50"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center gap-4 mb-8">
           <Link
             to="/dashboard"
-            className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-slate-900"
+            className={`p-2 rounded-full transition-colors ${
+              isDark
+                ? "hover:bg-slate-800 text-slate-400 hover:text-white"
+                : "hover:bg-white text-slate-400 hover:text-slate-900"
+            }`}
           >
             <ArrowLeft size={24} />
           </Link>
-          <h1 className="text-3xl font-black text-slate-900">Trash Bin</h1>
+
+          <h1
+            className={`text-3xl font-black ${
+              isDark ? "text-white" : "text-slate-900"
+            }`}
+          >
+            Trash Bin
+          </h1>
         </div>
 
         {trashedNotes.length > 0 ? (
@@ -94,12 +126,26 @@ const Trash = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-            <Trash2 size={48} className="mx-auto text-slate-200 mb-4" />
-            <p className="text-slate-400 font-medium">Your trash is empty.</p>
+          <div
+            className={`text-center py-20 rounded-3xl border border-dashed transition-colors ${
+              isDark
+                ? "bg-slate-800 border-slate-700"
+                : "bg-white border-slate-200"
+            }`}
+          >
+            <Trash2 size={48} className="mx-auto text-slate-300 mb-4" />
+
+            <p
+              className={`font-medium ${
+                isDark ? "text-slate-400" : "text-slate-400"
+              }`}
+            >
+              Your trash is empty.
+            </p>
           </div>
         )}
       </div>
+
       <ConfirmModal
         isOpen={showDeleteModal}
         title="Delete Permanently?"

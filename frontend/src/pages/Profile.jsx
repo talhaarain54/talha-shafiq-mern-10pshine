@@ -10,6 +10,7 @@ import { useState } from "react";
 const Profile = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const isDark = useSelector((s) => s.theme.mode === "dark");
   
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -55,40 +56,46 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
+    <div className={`min-h-screen py-12 px-4 transition-colors duration-200 ${isDark ? "bg-slate-900" : "bg-slate-50"}`}>
       <div className="max-w-2xl mx-auto">
         
         <header className="mb-10 text-center">
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Account Settings</h1>
-          <p className="text-slate-500 mt-2">Manage your account details and security.</p>
+          <h1 className={`text-3xl font-black tracking-tight transition-colors ${isDark ? "text-white" : "text-slate-900"}`}>
+            Account Settings
+          </h1>
+          <p className={`mt-2 transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+            Manage your account details and security.
+          </p>
         </header>
 
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className={`rounded-3xl border shadow-sm overflow-hidden transition-colors duration-200 ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
           {/* Centered Avatar Section */}
-          <div className="pt-10 pb-6 flex flex-col items-center border-b border-slate-50 bg-slate-50/30 relative">
+          <div className={`pt-10 pb-6 flex flex-col items-center border-b relative transition-colors ${isDark ? "border-slate-700 bg-slate-800/50" : "border-slate-50 bg-slate-50/30"}`}>
             {!isEditing && (
               <button 
                 onClick={() => setIsEditing(true)}
-                className="absolute top-6 right-8 flex items-center gap-2 text-sm font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all"
+                className={`absolute top-6 right-8 flex items-center gap-2 text-sm font-bold text-blue-500 px-3 py-1.5 rounded-lg transition-all ${isDark ? "hover:bg-blue-500/10" : "hover:bg-blue-50"}`}
               >
                 <Edit3 size={16} /> Edit
               </button>
             )}
             
-            <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-blue-100 ring-8 ring-white">
+            <div className={`w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white text-4xl font-black shadow-xl ring-8 transition-all ${isDark ? "shadow-blue-900/20 ring-slate-800" : "shadow-blue-100 ring-white"}`}>
               {user?.name?.charAt(0).toUpperCase()}
             </div>
             
             <div className="mt-4 flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Verified Account</span>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? "text-slate-400" : "text-slate-400"}`}>
+                Verified Account
+              </span>
             </div>
           </div>
 
           <div className="p-10 space-y-12">
             {/* Personal Information */}
             <section>
-              <div className="flex items-center gap-2 mb-8 text-slate-900">
+              <div className={`flex items-center gap-2 mb-8 ${isDark ? "text-white" : "text-slate-900"}`}>
                 <User size={20} className="text-blue-500" />
                 <h3 className="text-lg font-bold">Personal Information</h3>
               </div>
@@ -96,26 +103,30 @@ const Profile = () => {
               <form onSubmit={handleProfileSubmit(onUpdateProfile)} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Full Name</label>
+                    <label className={`block text-[11px] font-black uppercase tracking-widest mb-2 ml-1 ${isDark ? "text-slate-400" : "text-slate-400"}`}>
+                      Full Name
+                    </label>
                     <input 
                       {...regProfile("name")}
                       readOnly={!isEditing}
                       className={`w-full p-4 rounded-2xl border transition-all duration-200 outline-none font-medium ${
                         isEditing 
-                        ? "bg-white border-blue-200 ring-4 ring-blue-50 text-slate-900" 
-                        : "bg-slate-50 border-transparent text-slate-500 cursor-default"
+                        ? (isDark ? "bg-slate-700 border-blue-500 ring-4 ring-blue-500/20 text-white" : "bg-white border-blue-200 ring-4 ring-blue-50 text-slate-900") 
+                        : (isDark ? "bg-slate-900/50 border-transparent text-slate-300 cursor-default" : "bg-slate-50 border-transparent text-slate-500 cursor-default")
                       }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Email Address</label>
+                    <label className={`block text-[11px] font-black uppercase tracking-widest mb-2 ml-1 ${isDark ? "text-slate-400" : "text-slate-400"}`}>
+                      Email Address
+                    </label>
                     <input 
                       {...regProfile("email")}
                       readOnly={!isEditing}
                       className={`w-full p-4 rounded-2xl border transition-all duration-200 outline-none font-medium ${
                         isEditing 
-                        ? "bg-white border-blue-200 ring-4 ring-blue-50 text-slate-900" 
-                        : "bg-slate-50 border-transparent text-slate-500 cursor-default"
+                        ? (isDark ? "bg-slate-700 border-blue-500 ring-4 ring-blue-500/20 text-white" : "bg-white border-blue-200 ring-4 ring-blue-50 text-slate-900") 
+                        : (isDark ? "bg-slate-900/50 border-transparent text-slate-300 cursor-default" : "bg-slate-50 border-transparent text-slate-500 cursor-default")
                       }`}
                     />
                   </div>
@@ -126,7 +137,7 @@ const Profile = () => {
                     <button 
                       type="submit"
                       disabled={isUpdatingProfile}
-                      className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-100"
+                      className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/20"
                     >
                       <Save size={18} />
                       {isUpdatingProfile ? "Saving..." : "Save Changes"}
@@ -134,7 +145,7 @@ const Profile = () => {
                     <button 
                       type="button"
                       onClick={() => { resetProfile(); setIsEditing(false); }}
-                      className="px-6 py-3 rounded-2xl font-bold text-slate-400 hover:text-slate-600 transition-all"
+                      className={`px-6 py-3 rounded-2xl font-bold transition-all ${isDark ? "text-slate-400 hover:text-white" : "text-slate-400 hover:text-slate-600"}`}
                     >
                       Cancel
                     </button>
@@ -143,19 +154,19 @@ const Profile = () => {
               </form>
             </section>
 
-            <div className="h-px bg-slate-100" />
+            <div className={`h-px transition-colors ${isDark ? "bg-slate-700" : "bg-slate-100"}`} />
 
             {/* Security Section */}
             <section>
               <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-2 text-slate-900">
+                <div className={`flex items-center gap-2 ${isDark ? "text-white" : "text-slate-900"}`}>
                   <Lock size={20} className="text-amber-500" />
                   <h3 className="text-lg font-bold">Security</h3>
                 </div>
                 {!isChangingPassword && (
                   <button 
                     onClick={() => setIsChangingPassword(true)}
-                    className="text-sm font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all"
+                    className={`text-sm font-bold text-blue-500 px-3 py-1.5 rounded-lg transition-all ${isDark ? "hover:bg-blue-500/10" : "hover:bg-blue-50"}`}
                   >
                     Change Password
                   </button>
@@ -163,22 +174,24 @@ const Profile = () => {
               </div>
 
               {isChangingPassword ? (
-                <form onSubmit={handlePassSubmit(onChangePassword)} className="space-y-6 bg-slate-50/50 p-8 rounded-3xl border border-slate-100">
+                <form onSubmit={handlePassSubmit(onChangePassword)} className={`space-y-6 p-8 rounded-3xl border transition-colors ${isDark ? "bg-slate-900/30 border-slate-700" : "bg-slate-50/50 border-slate-100"}`}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {/* Current Password */}
                     <div className="relative">
-                      <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Current Password</label>
+                      <label className={`block text-[11px] font-black uppercase tracking-widest mb-2 ml-1 ${isDark ? "text-slate-400" : "text-slate-400"}`}>
+                        Current Password
+                      </label>
                       <div className="relative">
                         <input 
                           type={showCurrentPassword ? "text" : "password"}
                           placeholder="••••••••"
                           {...regPass("currentPassword", { required: true })}
-                          className="w-full p-4 pr-12 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-50 outline-none transition-all"
+                          className={`w-full p-4 pr-12 border rounded-2xl outline-none transition-all ${isDark ? "bg-slate-800 border-slate-600 focus:ring-4 focus:ring-blue-500/20 text-white placeholder-slate-500" : "bg-white border-slate-200 focus:ring-4 focus:ring-blue-50 text-slate-900"}`}
                         />
                         <button
                           type="button"
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${isDark ? "text-slate-400 hover:text-white" : "text-slate-400 hover:text-slate-600"}`}
                         >
                           {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -187,18 +200,20 @@ const Profile = () => {
 
                     {/* New Password */}
                     <div className="relative">
-                      <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">New Password</label>
+                      <label className={`block text-[11px] font-black uppercase tracking-widest mb-2 ml-1 ${isDark ? "text-slate-400" : "text-slate-400"}`}>
+                        New Password
+                      </label>
                       <div className="relative">
                         <input 
                           type={showNewPassword ? "text" : "password"}
                           placeholder="••••••••"
                           {...regPass("newPassword", { required: true })}
-                          className="w-full p-4 pr-12 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-50 outline-none transition-all"
+                          className={`w-full p-4 pr-12 border rounded-2xl outline-none transition-all ${isDark ? "bg-slate-800 border-slate-600 focus:ring-4 focus:ring-blue-500/20 text-white placeholder-slate-500" : "bg-white border-slate-200 focus:ring-4 focus:ring-blue-50 text-slate-900"}`}
                         />
                         <button
                           type="button"
                           onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${isDark ? "text-slate-400 hover:text-white" : "text-slate-400 hover:text-slate-600"}`}
                         >
                           {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -209,21 +224,21 @@ const Profile = () => {
                     <button 
                       type="submit"
                       disabled={isUpdatingPassword}
-                      className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold hover:bg-black disabled:opacity-50 transition-all shadow-lg shadow-slate-200"
+                      className={`px-8 py-3 rounded-2xl font-bold disabled:opacity-50 transition-all shadow-lg ${isDark ? "bg-white text-slate-900 hover:bg-slate-200 shadow-none" : "bg-slate-900 text-white hover:bg-black shadow-slate-200"}`}
                     >
                       {isUpdatingPassword ? "Updating..." : "Update Password"}
                     </button>
                     <button 
                       type="button"
                       onClick={() => setIsChangingPassword(false)}
-                      className="px-4 py-3 font-bold text-slate-400 hover:text-slate-600"
+                      className={`px-4 py-3 font-bold transition-colors ${isDark ? "text-slate-400 hover:text-white" : "text-slate-400 hover:text-slate-600"}`}
                     >
                       Cancel
                     </button>
                   </div>
                 </form>
               ) : (
-                <p className="text-sm text-slate-500 leading-relaxed max-w-md">
+                <p className={`text-sm leading-relaxed max-w-md transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                   Update your password regularly to keep your account secure. Use a combination of letters, numbers, and symbols.
                 </p>
               )}
