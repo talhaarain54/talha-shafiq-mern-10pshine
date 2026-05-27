@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Trash2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -16,10 +16,13 @@ import {
 import { handleApiError } from "../utils/handleApiError";
 import NoteCard from "../components/NoteCard";
 import toast from "react-hot-toast";
+import ConfirmModal from "../components/ConfirmModal";
 
 const Trash = () => {
   const dispatch = useDispatch();
   const { trashedNotes, loading } = useSelector((state) => state.notes);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedNoteId, setSelectedNoteId] = useState(null);
 
   useEffect(() => {
     const fetchTrash = async () => {
@@ -36,16 +39,18 @@ const Trash = () => {
     fetchTrash();
   }, [dispatch]);
 
-  const handleAction = async (type, id) => {
+  const handleAction = async (type, id = selectedNoteId) => {
     try {
       if (type === "restore") {
         const res = await restoreNoteService(id);
         dispatch(restoreNoteState(res.data));
         toast.success("Note restored to dashboard");
       } else {
-        if (!window.confirm("This action is permanent. Are you sure?")) return;
-        await deletePermanentService(id);
-        dispatch(deletePermanentState(id));
+        await deletePermanentService(selectedNoteId);
+        dispatch(deletePermanentState(selectedNoteId));
+
+        setShowDeleteModal(false);
+        setSelectedNoteId(null);
         toast.success("Note deleted permanently");
       }
     } catch (err) {
@@ -77,7 +82,14 @@ const Trash = () => {
                 key={note._id}
                 note={note}
                 isTrash={true}
-                onAction={handleAction}
+                onAction={(type, id) => {
+                  if (type === "restore") {
+                    handleAction(type, id);
+                  } else {
+                    setSelectedNoteId(id);
+                    setShowDeleteModal(true);
+                  }
+                }}
               />
             ))}
           </div>
@@ -88,6 +100,18 @@ const Trash = () => {
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Permanently?"
+        message="This action cannot be undone. The note will be permanently deleted."
+        confirmText="Delete Forever"
+        confirmColor="red"
+        onConfirm={() => handleAction("permanent")}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setSelectedNoteId(null);
+        }}
+      />
     </div>
   );
 };
