@@ -34,14 +34,22 @@ export const handleApiError = (error) => {
   const status = error.response.status;
 
   if (status === 401) {
-    const msg =  error.response?.data?.message || error.response?.data?.error || "Session expired. Please log in again.";
+    const msg =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Session expired. Please log in again.";
     toast.error(msg);
   } else if (status === 403) {
-    toast.error("You do not have permission to perform this action.");
+    const msg =
+      error.response?.data?.message ||
+      "You do not have permission to perform this action.";
+    toast.error(msg);
   } else if (status === 404) {
     toast.error("Requested resource not found.");
+  } else if (status === 429) {
+    toast.error("Too many requests. Please wait a moment before trying again.");
   } else if (status >= 500) {
-    toast.error("Internal Server Error. Our team has been notified.");
+    toast.error("Internal Server Error. Please try again later.");
   } else {
     toast.error(message);
   }
