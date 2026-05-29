@@ -8,13 +8,14 @@
     "test": "cross-env NODE_ENV=test mocha \"test/**/*.test.js\"",
     "test:coverage": "cross-env NODE_ENV=test c8 mocha \"test/**/*.test.js\"",
     "test:watch": "cross-env NODE_ENV=test mocha \"test/**/*.test.js\" --watch"
-},
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "c8": "^11.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
