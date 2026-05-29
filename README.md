@@ -27,7 +27,8 @@ A full-stack web application for creating, managing, and organizing personal not
 - **Tags** — Add and filter notes by tags
 - **Search & Sort** — Search notes by title/content, sort by date or title
 - **Trash** — Soft delete, restore, or permanently delete notes
-- **Export** — Export individual notes as PDF
+- **Export** — Export individual notes as PDF; export all notes as CSV or JSON
+- **Import** — Import notes in bulk from CSV or JSON files
 - **Dark Mode** — Full light/dark theme support
 - **Logging** — HTTP requests, auth events, and errors logged via Pino
 
@@ -202,5 +203,7 @@ View results at **http://localhost:9000**
 | GET | `/api/v1/notes/trash` | Get trashed notes |
 | PUT | `/api/v1/notes/restore/:id` | Restore a note |
 | DELETE | `/api/v1/notes/permanent/:id` | Permanently delete |
+| POST | `/api/v1/notes/import`	| Import notes from CSV/JSON |
+| GET | `/api/v1/notes/export`	| Export all notes |
 
 ---
