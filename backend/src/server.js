@@ -58,10 +58,10 @@ const forgotPasswordLimiter = rateLimit({
   message: { success: false, message: "Too many password reset requests. Please try again in an hour." },
 });
 
-// app.use("/api", generalLimiter);
-// app.use("/api/v1/auth/signin", authLimiter);
-// app.use("/api/v1/auth/signup", authLimiter);
-// app.use("/api/v1/auth/forgot-password", forgotPasswordLimiter);
+app.use("/api", generalLimiter);
+app.use("/api/v1/auth/signin", authLimiter);
+app.use("/api/v1/auth/signup", authLimiter);
+app.use("/api/v1/auth/forgot-password", forgotPasswordLimiter);
 
 
 // Routes

@@ -163,6 +163,48 @@ const getUserTags = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: tags });
 });
 
+const importNotes = asyncHandler(async (req, res) => {
+    const { notes } = req.body;
+
+    if (!Array.isArray(notes) || notes.length === 0) {
+        return res.status(400).json({ success: false, message: "No notes to import." });
+    }
+    if (notes.length > 500) {
+        return res.status(400).json({ success: false, message: "Max 500 notes per import." });
+    }
+
+    const notesToInsert = notes.map((note) => ({
+        title: String(note.title || "Untitled").trim().slice(0, 100),
+        content: String(note.content || ""),
+        tags: Array.isArray(note.tags)
+            ? note.tags.map((t) => String(t).trim()).filter(Boolean).slice(0, 10)
+            : note.tags
+            ? String(note.tags).split(";").map((t) => t.trim()).filter(Boolean).slice(0, 10)
+            : [],
+        user: req.user._id,
+        is_deleted: false,
+    }));
+
+    const created = await Note.insertMany(notesToInsert, { ordered: false });
+    logger.info({ userId: req.user._id, count: created.length }, "Notes imported");
+
+    res.status(201).json({
+        success: true,
+        message: `${created.length} note${created.length !== 1 ? "s" : ""} imported successfully.`,
+        count: created.length,
+        data: created,
+    });
+});
+
+const exportNotes = asyncHandler(async (req, res) => {
+    const notes = await Note.find({ user: req.user._id, is_deleted: false })
+        .select("title content tags createdAt updatedAt")
+        .sort({ updatedAt: -1 });
+
+    logger.info({ userId: req.user._id, count: notes.length }, "Notes exported");
+    res.status(200).json({ success: true, count: notes.length, data: notes });
+});
+
 export {
     createNote,
     updateNote,
@@ -173,4 +215,6 @@ export {
     trashNote,
     restoreNote,
     deleteNotePermanently,
+    importNotes,
+    exportNotes,
 };
