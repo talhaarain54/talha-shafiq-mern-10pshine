@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus, Search, FileText, SlidersHorizontal } from "lucide-react";
-import { getNotesService, getUserTagsService, trashNoteService } from "../services/note.service";
+import { Plus, Search, FileText, SlidersHorizontal, Upload, Download } from "lucide-react";
+import { getNotesService, getUserTagsService, trashNoteService, importNotesService, exportNotesService } from "../services/note.service";
 import { setNotes, removeNote, setNoteLoading } from "../features/noteSlice";
 import { handleApiError } from "../utils/handleApiError";
 import toast from "react-hot-toast";
@@ -30,7 +30,10 @@ const Dashboard = () => {
   const [sortBy, setSortBy] = useState("updatedAt");
   const [tags, setTags] = useState([]);
   const [showSort, setShowSort] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [importing, setImporting] = useState(false);
   const hasMounted = useRef(false);
+  const importInputRef = useRef(null);
 
   const fetchActiveNotes = async (search = searchQuery, tag = activeTag, sort = sortBy) => {
     dispatch(setNoteLoading(true));
@@ -63,6 +66,121 @@ const Dashboard = () => {
     const timer = setTimeout(() => fetchActiveNotes(), searchQuery ? 500 : 0);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = "";
+
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (!["json", "csv"].includes(ext)) {
+      toast.error("Only .json and .csv files are supported.");
+      return;
+    }
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      let notes = [];
+
+      if (ext === "json") {
+        const parsed = JSON.parse(text);
+        notes = Array.isArray(parsed) ? parsed : [parsed];
+      } else {
+        const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+        if (lines.length < 2) {
+          toast.error("CSV must have a header row and at least one note.");
+          return;
+        }
+        const headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim().toLowerCase());
+        const titleIdx = headers.indexOf("title");
+        const contentIdx = headers.indexOf("content");
+        const tagsIdx = headers.indexOf("tags");
+
+        if (titleIdx === -1) {
+          toast.error("CSV must have a 'title' column.");
+          return;
+        }
+
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].match(/(".*?"|[^",\n]+)/g) || [];
+          const clean = (idx) => (cols[idx] || "").replace(/^"|"$/g, "").trim();
+          const title = clean(titleIdx);
+          if (!title) continue;
+          notes.push({
+            title,
+            content: contentIdx !== -1 ? clean(contentIdx) : "",
+            tags: tagsIdx !== -1
+              ? clean(tagsIdx).split(";").map((t) => t.trim()).filter(Boolean)
+              : [],
+          });
+        }
+      }
+
+      if (notes.length === 0) {
+        toast.error("No valid notes found in the file.");
+        return;
+      }
+
+      const res = await importNotesService(notes);
+      toast.success(res.message);
+      await fetchActiveNotes();
+      await fetchTags();
+    } catch (err) {
+      if (err.response) {
+        handleApiError(err);
+      } else {
+        toast.error(err.message || "Failed to parse file. Check the format.");
+      }
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleExport = async (format) => {
+    setShowExport(false);
+    try {
+      const res = await exportNotesService();
+      const allNotes = res.data;
+
+      if (!allNotes || allNotes.length === 0) {
+        toast("No notes to export.", { icon: "📭" });
+        return;
+      }
+
+      let content, mimeType, filename;
+
+      if (format === "json") {
+        const exportData = allNotes.map(({ title, content, tags, createdAt, updatedAt }) => ({
+          title, content, tags, createdAt, updatedAt,
+        }));
+        content = JSON.stringify(exportData, null, 2);
+        mimeType = "application/json";
+        filename = `notes-export-${Date.now()}.json`;
+      } else {
+        const escape = (val) => `"${String(val || "").replace(/"/g, '""')}"`;
+        const header = "title,content,tags";
+        const rows = allNotes.map((n) =>
+          `${escape(n.title)},${escape(n.content)},${escape((n.tags || []).join(";"))}`
+        );
+        content = [header, ...rows].join("\n");
+        mimeType = "text/csv";
+        filename = `notes-export-${Date.now()}.csv`;
+      }
+
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${allNotes.length} note${allNotes.length !== 1 ? "s" : ""} exported as ${format.toUpperCase()}.`);
+    } catch (err) {
+      handleApiError(err);
+    }
+  };
+
 
   const handleTrash = async () => {
     try {
@@ -112,7 +230,9 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
+
+            {/* Search */}
             <div className="relative flex-1 md:w-72">
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? "text-slate-500" : "text-slate-400"}`} size={18} />
               <input type="text" placeholder="Search notes..."
@@ -120,6 +240,7 @@ const Dashboard = () => {
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
 
+            {/* Sort */}
             <div className="relative flex-shrink-0">
               <button onClick={() => setShowSort(!showSort)} className={sortBtnClass}>
                 <SlidersHorizontal size={15} />
@@ -136,6 +257,69 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Hidden file input for import */}
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".json,.csv"
+              className="hidden"
+              onChange={handleImportFile}
+            />
+
+            {/* Import Button */}
+            <button
+              onClick={() => importInputRef.current?.click()}
+              disabled={importing}
+              title="Import notes from CSV or JSON"
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-bold transition-all flex-shrink-0 disabled:opacity-50 ${
+                isDark
+                  ? "border-slate-600 text-slate-300 bg-slate-800 hover:bg-slate-700"
+                  : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50 shadow-sm"
+              }`}
+            >
+              <Upload size={15} className={importing ? "animate-bounce" : ""} />
+              <span className="hidden sm:inline">{importing ? "Importing..." : "Import"}</span>
+            </button>
+
+            {/* Export Dropdown */}
+            <div className="relative flex-shrink-0">
+              <button
+                onClick={() => setShowExport(!showExport)}
+                title="Export all notes"
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-bold transition-all ${
+                  isDark
+                    ? "border-slate-600 text-slate-300 bg-slate-800 hover:bg-slate-700"
+                    : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50 shadow-sm"
+                }`}
+              >
+                <Download size={15} />
+                <span className="hidden sm:inline">Export</span>
+              </button>
+              {showExport && (
+                <div className={`absolute right-0 top-full mt-1 w-44 rounded-xl shadow-xl z-20 overflow-hidden ${
+                  isDark ? "bg-slate-800 border border-slate-600" : "bg-white border border-slate-200"
+                }`}>
+                  <button
+                    onClick={() => handleExport("json")}
+                    className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
+                      isDark ? "text-slate-300 hover:bg-slate-700" : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    📄 Export as JSON
+                  </button>
+                  <button
+                    onClick={() => handleExport("csv")}
+                    className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
+                      isDark ? "text-slate-300 hover:bg-slate-700" : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    📊 Export as CSV
+                  </button>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
 

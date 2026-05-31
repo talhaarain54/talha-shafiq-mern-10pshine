@@ -50,3 +50,13 @@ export const deletePermanentService = async (id) => {
   const { data } = await API.delete(`/v1/notes/permanent/${id}`);
   return data;
 };
+
+export const importNotesService = async (notes) => {
+  const { data } = await API.post("/v1/notes/import", { notes });
+  return data;
+};
+
+export const exportNotesService = async () => {
+  const { data } = await API.get("/v1/notes/export");
+  return data;
+};
