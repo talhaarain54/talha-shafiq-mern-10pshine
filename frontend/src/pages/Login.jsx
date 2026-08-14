@@ -7,6 +7,7 @@ import { handleApiError } from "../utils/handleApiError";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import DemoCredentialsBanner from "../components/DemoCredentialsBanner";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -15,12 +16,18 @@ const Login = () => {
   const isDark = useSelector((s) => s.theme.mode === "dark");
   const [showPassword, setShowPassword] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("error") === "oauth_failed") {
-      toast.error("Google login failed. Please try again or use email/password.");
+      toast.error(
+        "Google login failed. Please try again or use email/password.",
+      );
     }
   }, []);
 
@@ -50,7 +57,9 @@ const Login = () => {
   const pg = isDark
     ? "min-h-screen flex items-center justify-center bg-slate-900 px-4"
     : "min-h-screen flex items-center justify-center bg-gray-100 px-4";
-  const card = isDark ? "bg-slate-800 border border-slate-700" : "bg-white shadow-md";
+  const card = isDark
+    ? "bg-slate-800 border border-slate-700"
+    : "bg-white shadow-md";
   const h = isDark
     ? "text-2xl font-bold text-center text-white mb-8"
     : "text-2xl font-bold text-center text-gray-800 mb-8";
@@ -72,7 +81,11 @@ const Login = () => {
         <h2 className={h}>Login to NoteBase</h2>
 
         <button type="button" onClick={handleGoogleLogin} className={googleBtn}>
-          <img src="https://www.svgrepo.com/show/355037/google.svg" className="w-5 h-5 mr-2" alt="Google" />
+          <img
+            src="https://www.svgrepo.com/show/355037/google.svg"
+            className="w-5 h-5 mr-2"
+            alt="Google"
+          />
           Continue with Google
         </button>
 
@@ -81,6 +94,11 @@ const Login = () => {
           <span className={`text-sm ${dividerText}`}>or</span>
           <div className={`flex-1 h-px ${dividerLine}`} />
         </div>
+
+        <DemoCredentialsBanner
+          email="demo@notebase.com"
+          password="Demo@123"
+        />
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -91,13 +109,20 @@ const Login = () => {
               className={input}
               placeholder="you@example.com"
             />
-            {errors.email && <span className="text-red-500 text-xs">{errors.email.message}</span>}
+            {errors.email && (
+              <span className="text-red-500 text-xs">
+                {errors.email.message}
+              </span>
+            )}
           </div>
 
           <div>
             <div className="flex items-center justify-between">
               <label className={label}>Password</label>
-              <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline font-medium">
+              <Link
+                to="/forgot-password"
+                className="text-xs text-blue-600 hover:underline font-medium"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -112,14 +137,18 @@ const Login = () => {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className={`absolute right-3 top-1/2 -translate-y-1/2 ${
-                  isDark ? "text-slate-400 hover:text-slate-200" : "text-gray-400 hover:text-gray-600"
+                  isDark
+                    ? "text-slate-400 hover:text-slate-200"
+                    : "text-gray-400 hover:text-gray-600"
                 } flex items-center`}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
             {errors.password && (
-              <span className="text-red-500 text-xs mt-1 block">{errors.password.message}</span>
+              <span className="text-red-500 text-xs mt-1 block">
+                {errors.password.message}
+              </span>
             )}
           </div>
 
@@ -148,9 +177,14 @@ const Login = () => {
           </button>
         </form>
 
-        <p className={`mt-6 text-center text-sm ${isDark ? "text-slate-400" : "text-gray-600"}`}>
+        <p
+          className={`mt-6 text-center text-sm ${isDark ? "text-slate-400" : "text-gray-600"}`}
+        >
           New user?{" "}
-          <Link to="/signup" className="text-blue-600 font-semibold hover:underline">
+          <Link
+            to="/signup"
+            className="text-blue-600 font-semibold hover:underline"
+          >
             Sign up here
           </Link>
         </p>
