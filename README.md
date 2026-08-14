@@ -1,4 +1,4 @@
-# NoteBase — Full-Stack Notes Application
+# NoteBase: Full-Stack Notes Application
 
 A full-stack web application for creating, managing, and organizing personal notes. Built with the MERN stack, featuring user authentication, rich text editing, email verification, and code quality tooling.
 
